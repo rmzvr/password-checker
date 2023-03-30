@@ -1,0 +1,1 @@
+export type PasswordStrength = 'None' | 'Short' | 'Weak' | 'Medium' | 'Strong'

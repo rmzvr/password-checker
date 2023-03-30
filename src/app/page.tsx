@@ -1,91 +1,86 @@
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-import styles from './page.module.css'
+'use client'
 
-const inter = Inter({ subsets: ['latin'] })
+import { useState } from 'react'
+
+import {
+  RegexPatterns,
+  PasswordStrength,
+  PasswordStrengthType,
+  PasswordStrengthColor,
+} from '@/types'
+
+import { MIN_PASSWORD_LENGTH } from '@/constants'
+
+import { Input } from '@/components/input'
+import { Indications } from '@/components/indications'
 
 export default function Home() {
+  const [password, setPassword] = useState<string>('')
+
+  const getPasswordStrength = (password: string): PasswordStrength => {
+    if (!password) {
+      return PasswordStrengthType.None
+    }
+
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      return PasswordStrengthType.Short
+    }
+
+    const containsLetters = new RegExp(RegexPatterns.Letters).test(password)
+    const containsDigits = new RegExp(RegexPatterns.Digits).test(password)
+    const containsSymbols = new RegExp(RegexPatterns.Symbols).test(password)
+
+    if (containsLetters && containsDigits && containsSymbols) {
+      return PasswordStrengthType.Strong
+    }
+
+    if (
+      (containsLetters && containsSymbols) ||
+      (containsLetters && containsDigits) ||
+      (containsDigits && containsSymbols)
+    ) {
+      return PasswordStrengthType.Medium
+    }
+
+    if (containsLetters || containsDigits || containsSymbols) {
+      return PasswordStrengthType.Weak
+    }
+
+    return PasswordStrengthType.None
+  }
+
+  const getSectionColor = (index: number): string => {
+    const strength: PasswordStrength = getPasswordStrength(password)
+
+    switch (strength) {
+      case PasswordStrengthType.None:
+        return PasswordStrengthColor.None
+
+      case PasswordStrengthType.Short:
+        return PasswordStrengthColor.Short
+
+      case PasswordStrengthType.Weak:
+        return index === 0
+          ? PasswordStrengthColor.Weak
+          : PasswordStrengthColor.None
+
+      case PasswordStrengthType.Medium:
+        return index < 2
+          ? PasswordStrengthColor.Medium
+          : PasswordStrengthColor.None
+
+      case PasswordStrengthType.Strong:
+        return PasswordStrengthColor.Strong
+
+      default:
+        return PasswordStrengthColor.None
+    }
+  }
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-        <div className={styles.thirteen}>
-          <Image src="/thirteen.svg" alt="13" width={40} height={31} priority />
-        </div>
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://beta.nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={inter.className}>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p className={inter.className}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={inter.className}>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p className={inter.className}>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={inter.className}>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p className={inter.className}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+    <main className='min-h-screen grid place-content-center'>
+      <Input password={password} setPassword={setPassword} />
+      <Indications getSectionColor={getSectionColor} />
     </main>
   )
 }
